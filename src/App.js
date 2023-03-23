@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -13,37 +13,33 @@ import Button from '@material-ui/core/Button';
 
 function App() {
   const classes = useStyles();
+  const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
   const [commits, setCommits] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetch('http://localhost:3001/commits/ericktabora92/commit-history')
-      .then(response => response.json())
-      .then(data => setCommits(data.commits))
-      .catch(error => console.error(error));
-  }, []);
-
-  const handleRepoChange = (event) => {
-    setRepo(event.target.value);
-  };
-
-  const handleFetchCommits = () => {
-    fetch(`http://localhost:3001/commits/ericktabora92/${repo}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Commits not found');
-      }
-      return response.json();
-    })
-    .then(data => {
-      setCommits(data.commits);
-      setError('');
-    })
-    .catch(error => {
+  const handleSubmit = () => {
+    if (!owner || !repo) {
+      setError('Owner and repo are required');
       setCommits([]);
-      setError(error.message);
-    });
+      return;
+    }
+
+    fetch(`http://localhost:3001/commits/${owner}/${repo}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => {
+        setCommits(data.commits);
+        setError(null);
+      })
+      .catch(error => {
+        setCommits([]);
+        setError(error.message || 'Something went wrong');
+      });
   };
 
   return (
@@ -55,12 +51,21 @@ function App() {
           label="Repository"
           variant="outlined"
           value={repo}
-          onChange={handleRepoChange}
+          onChange={e => setRepo(e.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={handleFetchCommits}>
+        <TextField
+          className={classes.textField}
+          label="Owner"
+          variant="outlined"
+          value={owner}
+          onChange={e => setOwner(e.target.value)}
+        />
+
+        <Button variant="contained" color="primary" onClick={handleSubmit}>
           Fetch Commits
         </Button>
       </div>
+      {error && <Typography variant="body1" color="error">{error}</Typography>}
       {commits.length > 0 ? (
         <TableContainer className={classes.tableContainer} component={Paper}>
           <Table className={classes.table} aria-label="simple table">
