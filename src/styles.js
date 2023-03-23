@@ -27,4 +27,12 @@ export const useStyles = makeStyles((theme) => ({
   tableCell: {
     padding: theme.spacing(1),
   },
+  formContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: theme.spacing(4),
+  },
+  formInput: {
+    marginRight: theme.spacing(2),
+  },
 }));
